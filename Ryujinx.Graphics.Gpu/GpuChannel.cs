@@ -1,5 +1,4 @@
-﻿using Ryujinx.Graphics.GAL;
-using Ryujinx.Graphics.Gpu.Engine.GPFifo;
+﻿using Ryujinx.Graphics.Gpu.Engine.GPFifo;
 using Ryujinx.Graphics.Gpu.Image;
 using Ryujinx.Graphics.Gpu.Memory;
 using System;
@@ -31,11 +30,6 @@ namespace Ryujinx.Graphics.Gpu
         /// Current channel memory manager.
         /// </summary>
         internal MemoryManager MemoryManager => _memoryManager;
-
-        /// <summary>
-        /// Host hardware capabilities from the GPU context.
-        /// </summary>
-        internal ref Capabilities Capabilities => ref _context.Capabilities;
 
         /// <summary>
         /// Creates a new instance of a GPU channel.
@@ -73,7 +67,7 @@ namespace Ryujinx.Graphics.Gpu
 
             // Since the memory manager changed, make sure we will get pools from addresses of the new memory manager.
             TextureManager.ReloadPools();
-            memoryManager.Physical.BufferCache.QueuePrune();
+            MemoryManager.VirtualBufferCache.QueuePrune();
         }
 
         /// <summary>
@@ -84,9 +78,7 @@ namespace Ryujinx.Graphics.Gpu
         private void MemoryUnmappedHandler(object sender, UnmapEventArgs e)
         {
             TextureManager.ReloadPools();
-
-            var memoryManager = Volatile.Read(ref _memoryManager);
-            memoryManager?.Physical.BufferCache.QueuePrune();
+            MemoryManager.VirtualBufferCache.QueuePrune();
         }
 
         /// <summary>
@@ -141,7 +133,6 @@ namespace Ryujinx.Graphics.Gpu
             {
                 oldMemoryManager.Physical.BufferCache.NotifyBuffersModified -= BufferManager.Rebind;
                 oldMemoryManager.Physical.DecrementReferenceCount();
-                oldMemoryManager.MemoryUnmapped -= MemoryUnmappedHandler;
             }
         }
     }
